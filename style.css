@@ -1,0 +1,41 @@
+#calendar {
+  height: 100vh;
+  padding: 1rem;
+}
+#event {
+  padding-right: 2rem;
+  max-height: 98vh;
+  overflow-y: scroll;
+}
+.card-img-top {
+  object-fit: cover;
+}
+.italic {
+  font-style: italic;
+}
+th .fc-list-day-cushion {
+  background-color: #183452;
+}
+.fc-event-title {
+  padding-left: 6px;
+  white-space: normal;
+}
+@media (max-width: 767.98px) {
+  .fc .fc-toolbar.fc-header-toolbar {
+    display: block;
+    text-align: center;
+  }
+
+  .fc-header-toolbar .fc-toolbar-chunk {
+    display: block;
+    margin-bottom: 1rem;
+  }
+  #calendar {
+    margin-top: 1rem;
+    height: 80vh;
+  }
+  #event {
+    padding: 1rem;
+    overflow-y: visible;
+  }
+}
