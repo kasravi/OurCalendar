@@ -14,7 +14,15 @@ var calendarNames = [
   "persian",
   "roc",
 ];
-var cals = {};
+var dayTimes = ["morning", "noon", "afternoon", "evening", "night"];
+var dayTimePrefixes = ["early ", "", "late "];
+var t = 0;
+var dayTimesDict = {};
+for (var dt = 0; dt < dayTimes.length; dt++) {
+  for (var dtp = 0; dtp < dayTimePrefixes.length; dtp++) {
+    dayTimesDict[`${dayTimePrefixes[dtp]}${dayTimes[dt]}`] = 9 + t++;
+  }
+}
 
 var toLocal = (date, cal) => {
   var parts = date.reconfigure({ outputCalendar: cal }).toLocaleParts();
@@ -61,7 +69,17 @@ var weekDaysToNumMap = {
   Fri: 5,
   Sat: 6,
   Sun: 7,
-  0: 0,
+  0: 0
+};
+
+filterDays = (days, filterFunc, count, rev) => {
+  var c = days.filter(filterFunc);
+  var t = c[(rev ? c.length - 1 : 0) + count];
+  return DateTime.fromObject({
+    year: t.year,
+    month: t.month,
+    day: t.day,
+  });
 };
 
 getDate = (dateString, n, days, currentYearDic) => {
@@ -69,55 +87,49 @@ getDate = (dateString, n, days, currentYearDic) => {
   d[1] = weekDaysToNumMap[d[1]];
   d[0] = parseInt(d[0]);
   d[2] = parseInt(d[2]);
-  count = parseInt(d[0]);
+  var count = parseInt(d[0]);
+  var cal = d[3];
+  var weekDay = d[1];
+  var month = d[2];
   var rev = count < 0;
   count += rev ? 1 : -1;
   try {
-    if (d[1] === 0) {
-      if (d[2] === 0) {
-        var c = days.filter((f) => f[d[3]].year === currentYearDic[d[3]] + n);
-        var t = c[(rev ? c.length - 1 : 0) + count];
-        return DateTime.fromObject({
-          year: t.year,
-          month: t.month,
-          day: t.day,
-        });
-      } else {
-        var c = days.filter(
-          (f) =>
-            f[d[3]].year === currentYearDic[d[3]] + n && f[d[3]].month === d[2]
+    if (weekDay === 0) {
+      if (month === 0) {
+        return filterDays(
+          days,
+          (f) => f[cal].year === currentYearDic[cal] + n,
+          count,
+          rev
         );
-        var t = c[(rev ? c.length - 1 : 0) + count];
-        return DateTime.fromObject({
-          year: t.year,
-          month: t.month,
-          day: t.day,
-        });
+      } else {
+        return filterDays(
+          days,
+          (f) =>
+            f[cal].year === currentYearDic[cal] + n && f[cal].month === month,
+          count,
+          rev
+        );
       }
     } else {
-      if (d[2] === 0) {
-        var c = days.filter(
-          (f) => f[d[3]].year === currentYearDic[d[3]] + n && f.weekday === d[1]
-        );
-        var t = c[(rev ? c.length - 1 : 0) + count];
-        return DateTime.fromObject({
-          year: t.year,
-          month: t.month,
-          day: t.day,
-        });
-      } else {
-        var c = days.filter(
+      if (month === 0) {
+        return filterDays(
+          days,
           (f) =>
-            f[d[3]].year === currentYearDic[d[3]] + n &&
-            f.weekday === d[1] &&
-            f[d[3]].month === d[2]
+            f[cal].year === currentYearDic[cal] + n && f.weekday === weekDay,
+          count,
+          rev
         );
-        var t = c[(rev ? c.length - 1 : 0) + count];
-        return DateTime.fromObject({
-          year: t.year,
-          month: t.month,
-          day: t.day,
-        });
+      } else {
+        return filterDays(
+          days,
+          (f) =>
+            f[cal].year === currentYearDic[cal] + n &&
+            f.weekday === weekDay &&
+            f[cal].month === month,
+          count,
+          rev
+        );
       }
     }
   } catch (e) {
@@ -125,15 +137,6 @@ getDate = (dateString, n, days, currentYearDic) => {
   }
 };
 
-var dayTimes = ["morning", "noon", "afternoon", "evening", "night"];
-var dayTimePrefixes = ["early ", "", "late "];
-var t = 0;
-var dayTimesDict = {};
-for (var dt = 0; dt < dayTimes.length; dt++) {
-  for (var dtp = 0; dtp < dayTimePrefixes.length; dtp++) {
-    dayTimesDict[`${dayTimePrefixes[dtp]}${dayTimes[dt]}`] = 9 + t++;
-  }
-}
 getTime = (time) => {
   if (!time) {
     return { hour: 1 };
@@ -172,7 +175,7 @@ parseEvents = (yearsNum, days, currentYearDic) => {
         } else {
           startTime = endTime = getTime(e.time);
         }
-
+        
         if (e.date.indexOf("~") > -1) {
           var dates = e.date
             .split("~")
