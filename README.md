@@ -31,6 +31,25 @@ usable calendars are
 ### date span
 - date span will be noted via ~ 
 
+### events with js filters
+if an events contains a filter, the function will be ran on days array and same events will be added on filtered days. can be used for events which have mathematical origins like turn of the century.
+
+days array have a structure like this for all days of current iso8601 year and extra years from past and future:
+```
+[{
+    year: iso8601 year,
+    month: iso8601 month,
+    day: iso8601 day,
+    weekday: weekday,
+    'calendar-name':{
+        year: calendar-year
+        month: calendar-month
+        day: calendar-day
+    }
+}]
+```
+due to years' start and end of different calendars don't match, this array is built with one more year in addition in beginning and end. so if we want to build the calendar for current, past, and next year, this array will contain 5 consecutive iso8601 years to ensure we have at least 3 of each non iso calendars.
+
 ## time
 - descriptive (Morning,Noon,AfterNoon,Evening,Night,Midnight)
 - descriptive can be prefixed by (early, late, exact)

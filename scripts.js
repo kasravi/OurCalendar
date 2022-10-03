@@ -69,7 +69,7 @@ var weekDaysToNumMap = {
   Fri: 5,
   Sat: 6,
   Sun: 7,
-  0: 0
+  0: 0,
 };
 
 filterDays = (days, filterFunc, count, rev) => {
@@ -80,6 +80,16 @@ filterDays = (days, filterFunc, count, rev) => {
     month: t.month,
     day: t.day,
   });
+};
+
+getDateWithFilter = (days, filterFunc) => {
+  return days.filter(filterFunc).map((t) =>
+    DateTime.fromObject({
+      year: t.year,
+      month: t.month,
+      day: t.day,
+    })
+  );
 };
 
 getDate = (dateString, n, days, currentYearDic) => {
@@ -153,6 +163,22 @@ getTime = (time) => {
   };
 };
 
+parseTime = (e) => {
+  if (!e.time || e.time === "?" || e.time === "") {
+    startTime = { hour: 9 };
+    endTime = { hour: 23 };
+    allDay = true;
+  } else if (e.time.indexOf("~") > -1) {
+    var times = e.time.split("~");
+    startTime = getTime(times[0]);
+    endTime = getTime(times[1]);
+  } else {
+    startTime = endTime = getTime(e.time);
+  }
+
+  return { startTime, endTime };
+};
+
 parseEvents = (yearsNum, days, currentYearDic) => {
   return [...Array(yearsNum).keys()]
     .flatMap((n) =>
@@ -164,30 +190,52 @@ parseEvents = (yearsNum, days, currentYearDic) => {
           endTime = null,
           allDay = false;
 
-        if (!e.time || e.time === "?" || e.time === "") {
-          startTime = { hour: 9 };
-          endTime = { hour: 23 };
-          allDay = true;
-        } else if (e.time.indexOf("~") > -1) {
-          var times = e.time.split("~");
-          startTime = getTime(times[0]);
-          endTime = getTime(times[1]);
-        } else {
-          startTime = endTime = getTime(e.time);
+        var { startTime, endTime } = parseTime(e);
+
+        if (e.date) {
+          if (e.date.indexOf("~") > -1) {
+            var dates = e.date
+              .split("~")
+              .map((f) => getDate(f, n - 1, days, currentYearDic));
+            start = dates[0].plus(startTime).toISO();
+            end = dates[1].plus(endTime).toISO();
+            allDay = false;
+          } else {
+            start = end = getDate(e.date, n - 1, days, currentYearDic);
+            start = start.plus(startTime).toISO();
+            end = end.plus(endTime).toISO();
+          }
+
+          return {
+            title: e.name,
+            start,
+            end,
+            allDay,
+            extendedProps: {
+              image: e.image ?? "https://picsum.photos/200",
+              sub: e.description,
+              tag: e.tag,
+              link: e.link,
+            },
+          };
+        } else if (e.filter) {
         }
-        
-        if (e.date.indexOf("~") > -1) {
-          var dates = e.date
-            .split("~")
-            .map((f) => getDate(f, n - 1, days, currentYearDic));
-          start = dates[0].plus(startTime).toISO();
-          end = dates[1].plus(endTime).toISO();
-          allDay = false;
-        } else {
-          start = end = getDate(e.date, n - 1, days, currentYearDic);
-          start = start.plus(startTime).toISO();
-          end = end.plus(endTime).toISO();
-        }
+      })
+    )
+    .filter((f) => f);
+};
+
+parseEventsWithFilter = (days) => {
+  return events
+    .flatMap((e) => {
+      if (!e.filter) return;
+
+      var dates = getDateWithFilter(days, e.filter);
+      var { startTime, endTime } = parseTime(e);
+      return dates.map((date) => {
+        start = end = date;
+        start = start.plus(startTime).toISO();
+        end = end.plus(endTime).toISO();
 
         return {
           title: e.name,
@@ -201,11 +249,10 @@ parseEvents = (yearsNum, days, currentYearDic) => {
             link: e.link,
           },
         };
-      })
-    )
+      });
+    })
     .filter((f) => f);
 };
-
 var buildEventsArray = (extraYears) => {
   var yearsNum = extraYears * 2 + 1;
   var currentYearDic = calendarNames.reduce((a, i) => {
@@ -213,5 +260,8 @@ var buildEventsArray = (extraYears) => {
     return a;
   }, {});
   var days = buildDaysArray(yearsNum, currentYearDic);
-  return parseEvents(yearsNum, days, currentYearDic);
+  return [
+    ...parseEvents(yearsNum, days, currentYearDic),
+    ...parseEventsWithFilter(days),
+  ];
 };
