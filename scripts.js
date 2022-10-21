@@ -279,6 +279,7 @@ var convertDate = (dateString) => {
   return `${year}${month}${day}T${hour}${minute}${second}Z`;
 };
 var buildIcs = (events) => {
+  var ts = convertDate((new Date()).toISOString());
   return [
     `BEGIN:VCALENDAR`,
     `VERSION:2.0`,
@@ -286,7 +287,7 @@ var buildIcs = (events) => {
     `PRODID:ourCalendar/ics`,
     `METHOD:PUBLISH`,
     `X-PUBLISHED-TTL:PT1H`,
-    ...events.map(buildIcsEvent),
+    ...events.map(e=>buildIcsEvent(e,ts)),
     `END:VCALENDAR`,
   ]
     .flatMap((f) => f)
@@ -294,7 +295,7 @@ var buildIcs = (events) => {
     .join("\n");
 };
 
-var buildIcsEvent = (event) => {
+var buildIcsEvent = (event, ts) => {
   var img = event.extendedProps.image;
   var extension = img.substr(img.lastIndexOf(".") + 1);
   return [
@@ -303,6 +304,7 @@ var buildIcsEvent = (event) => {
     `SUMMARY:${event.title}`,
     `DTSTART:${convertDate(event.start)}`,
     `DTEND:${convertDate(event.end)}`,
+    `DTSTAMP:${ts}`,
     `DESCRIPTION:${event.extendedProps.sub}`,
     `URL:${event.extendedProps.link}`,
     `CATEGORIES:${event.extendedProps.tag}`,
