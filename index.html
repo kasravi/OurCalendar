@@ -91,12 +91,20 @@
 
         var calendarEl = document.getElementById("calendar");
         var calendar = new FullCalendar.Calendar(calendarEl, {
+          customButtons: {
+            downloadIcs: {
+              text: 'Download .ics',
+              click: function() {
+                downloadIcs();
+              }
+            }
+          },
           initialView: "dayGridMonth",
           themeSystem: "bootstrap5",
           fixedWeekCount: false,
           firstDay: 1,
           headerToolbar: {
-            left: "prev,next today",
+            left: "prev,next today downloadIcs",
             center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay listMonth",
           },

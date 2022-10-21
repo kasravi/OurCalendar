@@ -116,7 +116,7 @@ var events = [
         image:"https://post.healthline.com/wp-content/uploads/2021/09/Female_Breathing_Outside_1296x728-header-1296x729.jpg"
     },
     {
-        date:"4/Thu/10/iso8601",
+        date:"1/0/9/islamic",
         time:"?",
         name:"Fasting Day",
         description:"Don't eat and drink anything from dusk sunrise to sunset",

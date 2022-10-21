@@ -253,6 +253,81 @@ parseEventsWithFilter = (days) => {
     })
     .filter((f) => f);
 };
+
+var wrap = (s) => s.replaceAll(/(.{1,75})/g, "$1\n\t").trim();
+var uuid = () => {
+  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+    (
+      c ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+    ).toString(16)
+  );
+};
+
+function pad(i) {
+  return i < 10 ? `0${i}` : `${i}`;
+}
+
+var convertDate = (dateString) => {
+  var date = new Date(dateString);
+  var year = date.getUTCFullYear();
+  var month = pad(date.getUTCMonth() + 1);
+  var day = pad(date.getUTCDate());
+  var hour = pad(date.getUTCHours());
+  var minute = pad(date.getUTCMinutes());
+  var second = pad(date.getUTCSeconds());
+  return `${year}${month}${day}T${hour}${minute}${second}Z`;
+};
+var buildIcs = (events) => {
+  return [
+    `BEGIN:VCALENDAR`,
+    `VERSION:2.0`,
+    `CALSCALE:GREGORIAN`,
+    `PRODID:ourCalendar/ics`,
+    `METHOD:PUBLISH`,
+    `X-PUBLISHED-TTL:PT1H`,
+    ...events.map(buildIcsEvent),
+    `END:VCALENDAR`,
+  ]
+    .flatMap((f) => f)
+    .map(wrap)
+    .join("\n");
+};
+
+var buildIcsEvent = (event) => {
+  var img = event.extendedProps.image;
+  var extension = img.substr(img.lastIndexOf(".") + 1);
+  return [
+    `BEGIN:VEVENT`,
+    `UID:${uuid()}`,
+    `SUMMARY:${event.title}`,
+    `DTSTART:${convertDate(event.start)}`,
+    `DTEND:${convertDate(event.end)}`,
+    `DESCRIPTION:${event.extendedProps.sub}`,
+    `URL:${event.extendedProps.link}`,
+    `CATEGORIES:${event.extendedProps.tag}`,
+    `IMAGE;VALUE=URI;DISPLAY=BADGE;FMTTYPE=image/${extension}:${img}`,
+    `END:VEVENT`,
+  ];
+};
+
+function download(filename, text) {
+  var pom = document.createElement("a");
+  pom.setAttribute(
+    "href",
+    "data:text/calendar;charset=utf-8," + encodeURIComponent(text)
+  );
+  pom.setAttribute("download", filename);
+
+  if (document.createEvent) {
+    var event = document.createEvent("MouseEvents");
+    event.initEvent("click", true, true);
+    pom.dispatchEvent(event);
+  } else {
+    pom.click();
+  }
+}
+
 var buildEventsArray = (extraYears) => {
   var yearsNum = extraYears * 2 + 1;
   var currentYearDic = calendarNames.reduce((a, i) => {
@@ -260,8 +335,23 @@ var buildEventsArray = (extraYears) => {
     return a;
   }, {});
   var days = buildDaysArray(yearsNum, currentYearDic);
-  return [
+
+  var parsedEvents = [
     ...parseEvents(yearsNum, days, currentYearDic),
     ...parseEventsWithFilter(days),
   ];
+
+  window.downloadIcs = () => {
+    var currentGeorgianYear = getCurrentYear("iso8601");
+    var ics = buildIcs(
+      parsedEvents.filter((f) => {
+        var date = new Date(f.start);
+        var year = date.getUTCFullYear();
+        return year === currentGeorgianYear;
+      })
+    );
+    download("ourCalendar.ics", ics);
+  };
+
+  return parsedEvents;
 };
