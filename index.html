@@ -87,7 +87,7 @@
         }
       };
       document.addEventListener("DOMContentLoaded", function () {
-        var parsedEvents = buildEventsArray(1);
+        var parsedEvents = buildEventsArray(1, events);
 
         var calendarEl = document.getElementById("calendar");
         var calendar = new FullCalendar.Calendar(calendarEl, {

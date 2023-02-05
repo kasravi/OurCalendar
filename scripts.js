@@ -83,7 +83,7 @@ filterDays = (days, filterFunc, count, rev) => {
 };
 
 getDateWithFilter = (days, filterFunc) => {
-  return days.filter(filterFunc).map((t) =>
+  return days.filter(eval(filterFunc)).map((t) =>
     DateTime.fromObject({
       year: t.year,
       month: t.month,
@@ -179,7 +179,7 @@ parseTime = (e) => {
   return { startTime, endTime };
 };
 
-parseEvents = (yearsNum, days, currentYearDic) => {
+parseEvents = (yearsNum, days, currentYearDic, events) => {
   return [...Array(yearsNum).keys()]
     .flatMap((n) =>
       events.map((e) => {
@@ -225,7 +225,7 @@ parseEvents = (yearsNum, days, currentYearDic) => {
     .filter((f) => f);
 };
 
-parseEventsWithFilter = (days) => {
+parseEventsWithFilter = (days, events) => {
   return events
     .flatMap((e) => {
       if (!e.filter) return;
@@ -330,7 +330,7 @@ function download(filename, text) {
   }
 }
 
-var buildEventsArray = (extraYears) => {
+var buildEventsArray = (extraYears, events) => {
   var yearsNum = extraYears * 2 + 1;
   var currentYearDic = calendarNames.reduce((a, i) => {
     a[i] = getCurrentYear(i);
@@ -339,8 +339,8 @@ var buildEventsArray = (extraYears) => {
   var days = buildDaysArray(yearsNum, currentYearDic);
 
   var parsedEvents = [
-    ...parseEvents(yearsNum, days, currentYearDic),
-    ...parseEventsWithFilter(days),
+    ...parseEvents(yearsNum, days, currentYearDic, events),
+    ...parseEventsWithFilter(days, events),
   ];
 
   window.downloadIcs = () => {

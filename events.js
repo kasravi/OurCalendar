@@ -349,3 +349,38 @@ var events = [
         description:"Moon Watching"
     }
 ]
+var sampleEvents = [
+    {
+        date:"1/0/1/persian",
+        time: "?",
+        name:"Nowruz",
+        description:"Persian new year",
+        link:"https://en.wikipedia.org/wiki/Nowruz",
+        tag:"persian",
+        image:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/1389-Norooz-haftseenWM.jpg/1024px-1389-Norooz-haftseenWM.jpg"
+    },
+    {
+        date:"1/Sat/3/iso8601~1/Sun/3/iso8601",
+        time:"?",
+        name:"Plant Day",
+        description:"",
+        link:"",
+        tag:"ours",
+        image:""
+    },
+    {
+        date:"1/Sat/2/iso8601~1/Sun/2/iso8601",
+        time:"morning~night",
+        name:"Ablomov Weekend",
+        description:"Two whole days in bed, just eat and sleep and mayyyybe read a book",
+        link:"https://en.wikipedia.org/wiki/Oblomov",
+        tag:"ours",
+        image:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Oblomov_1915.jpg/800px-Oblomov_1915.jpg"
+    },
+    {
+        time: "?",
+        filter: "f=>f['persian'].year%100===0&&f['persian'].day===1&&f['persian'].month===1",
+        name:"Turn of the Century (Persian)",
+        tag:"persian",
+    }
+]
